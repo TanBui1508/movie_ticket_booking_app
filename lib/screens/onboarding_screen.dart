@@ -1,6 +1,5 @@
-// lib/screens/onboarding_screen.dart
 import 'package:flutter/material.dart';
-//import 'package:movie_booking_app/screens/auth/login_screen.dart';
+// import 'package:cinema_app_flutter/screens/auth/login_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -15,7 +14,7 @@ class OnboardingScreen extends StatelessWidget {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              //Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
+              // Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
             },
             child: Text('Get Started'),
           ),

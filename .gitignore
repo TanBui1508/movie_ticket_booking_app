@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+/lib/firebase_options.dart
+/lib/google_service_info.dart
+/lib/services/movie_service.dart

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cinema_app_flutter/screens/onboarding_screen.dart';
 import 'package:lordicon/lordicon.dart';
+import 'dart:developer';
+import 'package:cinema_app_flutter/screens/auth_wrapper.dart'; 
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,67 +14,104 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late IconController _controller;
   late void Function(ControllerStatus) _listener;
-
-  double _opacity = 0.0; // độ mờ ban đầu
+  bool _isNavigating = false;
+  double _opacity = 0.0;
 
   @override
   void initState() {
     super.initState();
+    _initializeAnimation();
+  }
 
-    _controller = IconController.assets('assets/logo_movie.json');
+  void _initializeAnimation() {
+    try {
+      _controller = IconController.assets('assets/logo_movie.json');
+      
+      _listener = (status) {
+        if (!mounted || _isNavigating) return;
 
-    _listener = (status) {
-      if (!mounted) return;
+        if (status == ControllerStatus.ready) {
+          log('Animation ready, playing...');
+          _controller.playFromBeginning();
+          
+          Future.delayed(const Duration(seconds: 1), () {
+            if (mounted && !_isNavigating) {
+              setState(() {
+                _opacity = 1.0;
+              });
+            }
+          });
+          
+        } else if (status == ControllerStatus.completed) {
+          log('✅ Animation completed, navigating...');
+          _navigateToAuth(); // ✅ SỬA ĐỔI
+        }
+      };
 
-      if (status == ControllerStatus.ready) {
-        _controller.playFromBeginning();
-        // Sau 1s thì bắt đầu fade-in text
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) {
-            setState(() {
-              _opacity = 1.0;
-            });
-          }
-        });
-      } else if (status == ControllerStatus.completed) {
-        Navigator.pushReplacementNamed(context, '/onboarding');
+      _controller.addStatusListener(_listener);
+      
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted && !_isNavigating) {
+          log('⏰ Animation timeout, navigating...');
+          _navigateToAuth(); // ✅ SỬA ĐỔI
+        }
+      });
+      
+    } catch (e) {
+      log('Error initializing animation: $e');
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted && !_isNavigating) {
+          _navigateToAuth(); // ✅ SỬA ĐỔI
+        }
+      });
+    }
+  }
+
+  void _navigateToAuth() { // ✅ SỬA ĐỔI TÊN HÀM
+    if (_isNavigating || !mounted) return;
+    
+    _isNavigating = true;
+    log('🚀 Navigating to /auth'); // ✅ SỬA ĐỔI LOG
+    
+    try {
+      Navigator.pushReplacementNamed(context, '/auth'); // ✅ SỬA ĐỔI ROUTE
+    } catch (e) {
+      log('❌ Navigation error: $e. Using fallback.');
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AuthWrapper()), // ✅ SỬA ĐỔI FALLBACK
+        );
       }
-    };
-
-    _controller.addStatusListener(_listener);
+    }
   }
 
   @override
   void dispose() {
+    // Luôn dispose controller để tránh memory leak
     _controller.removeStatusListener(_listener);
-    //_controller.dispose(); // tạm thời bỏ dispose để tránh crash
+    //_controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // ... Phần UI của bạn giữ nguyên, không cần thay đổi ...
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo animation
-            IconViewer(
-              controller: _controller,
-              width: 200,
-              height: 200,
-            ),
+            _buildAnimation(),
             const SizedBox(height: 24),
-
-            // Fade-in cho text
             AnimatedOpacity(
               opacity: _opacity,
-              duration: const Duration(seconds: 1),
-              curve: Curves.easeIn,
+              duration: const Duration(milliseconds: 1500),
+              curve: Curves.easeOut,
               child: Column(
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     "Cinema App",
                     style: TextStyle(
                       fontSize: 28,
@@ -81,14 +119,25 @@ class _SplashScreenState extends State<SplashScreen>
                       color: Colors.black87,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Text(
                     "Your movie world in your pocket",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey,
                       fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).primaryColor,
+                      ),
                     ),
                   ),
                 ],
@@ -98,5 +147,44 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildAnimation() {
+    // ... phần này cũng giữ nguyên ...
+    try {
+      return IconViewer(
+        controller: _controller,
+        width: 200,
+        height: 200,
+      );
+    } catch (e) {
+      log('❌ Animation widget error: $e');
+      return Container(
+        width: 200,
+        height: 200,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.movie,
+              size: 60,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Loading...',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }
