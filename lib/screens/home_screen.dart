@@ -6,6 +6,8 @@ import 'package:cinema_app_flutter/services/movie_service.dart';
 import 'package:cinema_app_flutter/models/movie.dart';
 import 'package:intl/intl.dart';
 import 'package:cinema_app_flutter/screens/movie_detail_screen.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -46,6 +48,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     // Lắng nghe provider phim
     final moviesAsync = ref.watch(nowPlayingMoviesProvider);
+    // final size = MediaQuery.of(context).size;
+    // print('Screen Size: width=${size.width}, height=${size.height}');
 
     return Scaffold(
       // Dùng .when để xử lý các trạng thái của provider
@@ -56,7 +60,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             return const Center(child: Text('Không có phim nào đang chiếu.'));
           }
           // Lấy phim nổi bật hiện tại
-          final featuredMovie = movies[_currentPage];
+          final featuredMovie = movies[_currentPage % movies.length];
 
           // DÙNG STACK ĐỂ XẾP CHỒNG CÁC LỚP UI
           return Stack(
@@ -96,7 +100,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.black.withOpacity(0.6), Colors.black.withOpacity(0.9)],
+              colors: [Colors.black.withAlpha(153), Colors.black.withAlpha(230)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -108,32 +112,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Widget xây dựng lớp nội dung
   Widget _buildContent(List<Movie> movies) {
-    final featuredMovie = movies[_currentPage];
+    final featuredMovie = movies[_currentPage % movies.length];
 
     return SafeArea(
       child: Column(
         children: [
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           Text(
             featuredMovie.title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 28,
+              fontSize: 28.sp,
               fontWeight: FontWeight.bold,
               shadows: [Shadow(blurRadius: 10.0, color: Colors.black)],
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           // Widget mới cho Điểm đánh giá và Ngày phát hành
           _RatingAndDate(movie: featuredMovie),
           const Spacer(),
           // Carousel poster phim
           SizedBox(
-            height: 350,
+            height: 350.h,
             child: PageView.builder(
               controller: _pageController,
-              itemCount: movies.length,
+              itemCount: movies.length * 100, // Tăng số lượng để tạo hiệu ứng vô hạn
               itemBuilder: (context, index) {
                 return AnimatedBuilder(
                   animation: _pageController,
@@ -149,7 +153,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     );
                   },
                   // Gọi widget card mới
-                  child: _MoviePosterCard(movie: movies[index]),
+                  child: _MoviePosterCard(movie: movies[index % movies.length]),
                 );
               },
             ),
@@ -157,20 +161,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const Spacer(),
           // Widget mới cho Thể loại
           _MovieGenres(genreIds: featuredMovie.genreIds),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 18),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              padding: EdgeInsets.symmetric(horizontal: 60.w, vertical: 18.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
               elevation: 8.0,
-              shadowColor: Colors.redAccent.withOpacity(0.5),
+              shadowColor: Colors.redAccent.withAlpha(128),
             ),
-            child: const Text(
+            child: Text(
               'Đặt Vé',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
             ),
           ),
           const Spacer(flex: 2),
@@ -185,15 +189,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Align(
       alignment: Alignment.bottomCenter,
       child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30.r),
+          topRight: Radius.circular(30.r),
         ),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
           child: Container(
-            height: 70,
-            color: Colors.white.withOpacity(0.1),
+            height: 70.h,
+            color: Colors.white.withAlpha(26),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -201,12 +205,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 _navBarIcon(Icons.local_offer_outlined),
                 // Icon Home nổi bật
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12.r),
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.redAccent,
                   ),
-                  child: const Icon(Icons.home, color: Colors.white, size: 28),
+                  child: Icon(Icons.home, color: Colors.white, size: 28.sp),
                 ),
                 _navBarIcon(Icons.theaters_outlined),
                 _navBarIcon(Icons.person_outline),
@@ -222,7 +226,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _navBarIcon(IconData icon) {
     return IconButton(
       onPressed: () {},
-      icon: Icon(icon, color: Colors.white70, size: 24),
+      icon: Icon(icon, color: Colors.white70, size: 24.sp),
     );
   }
 }
@@ -244,11 +248,11 @@ class _MovieGenres extends ConsumerWidget {
         return Text(
           genreNames,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(color: Colors.white70, fontSize: 12.sp),
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }
@@ -261,7 +265,7 @@ class _MoviePosterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 12.0),
+      padding: EdgeInsets.only(right: 12.0),
       child: GestureDetector(
         // ✅ CẬP NHẬT HÀM ONTAP
         onTap: () {
@@ -280,7 +284,7 @@ class _MoviePosterCard extends StatelessWidget {
           children: [
         // Poster
         ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           child: Image.network(movie.posterPath, fit: BoxFit.contain),
         ),
         // Nhãn dán
@@ -324,8 +328,8 @@ class _SpecialLabel extends StatelessWidget {
     return Chip(
       label: Text(label),
       backgroundColor: color,
-      labelStyle: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+      labelStyle: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.bold),
+      padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 2.h),
     );
   }
 }
@@ -346,8 +350,8 @@ class _RatingAndDate extends StatelessWidget {
       children: [
         // Vòng tròn tiến trình cho điểm
         SizedBox(
-          width: 40,
-          height: 40,
+          width: 40.w,
+          height: 40.h,
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -360,9 +364,9 @@ class _RatingAndDate extends StatelessWidget {
               Center(
                 child: Text(
                   movie.voteAverage.toStringAsFixed(1),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -370,11 +374,11 @@ class _RatingAndDate extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: 16.w),
         // Ngày phát hành
         Text(
           releaseDate,
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
+          style: TextStyle(color: Colors.white70, fontSize: 14.sp),
         ),
       ],
     );

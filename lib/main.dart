@@ -11,13 +11,15 @@ import 'package:cinema_app_flutter/services/auth_service.dart';
 import 'firebase_options.dart';
 import 'dart:developer';
 import 'package:cinema_app_flutter/screens/auth_wrapper.dart';
-
-
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await initializeDateFormatting('vi_VN', null); 
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -36,22 +38,27 @@ class MyApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Movie Booking App',
-      theme: lightMode,
-      debugShowCheckedModeBanner: false,
-      
-      // Sử dụng một map 'routes' đơn giản, dễ quản lý
-      routes: {
-        '/': (context) => const SplashScreen(), // Route ban đầu
-        '/auth': (context) => const AuthWrapper(), // Route của "người gác cổng"
-        '/signin': (context) => const SignInScreen(),
-        '/signup': (context) => const SignUpScreen(),
-        // Chúng ta không cần route '/home' ở đây nữa vì AuthWrapper sẽ xử lý
+    return ScreenUtilInit(
+      designSize: const Size(412, 924),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'Cinema App',
+          theme: lightMode,
+          darkTheme: darkMode,
+          themeMode: ThemeMode.system,
+          debugShowCheckedModeBanner: false,
+          initialRoute: '/',
+          routes: {
+            '/': (context) => const SplashScreen(),
+            '/auth': (context) => const AuthWrapper(),
+            '/signin': (context) => const SignInScreen(),
+            '/signup': (context) => const SignUpScreen(),
+            
+          },
+        );
       },
-      
-      // Luôn bắt đầu ứng dụng tại SplashScreen
-      initialRoute: '/',
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'package:cinema_app_flutter/screens/booking_screen.dart';
+import 'package:cinema_app_flutter/screens/sigin_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -5,6 +7,7 @@ import 'package:cinema_app_flutter/services/movie_service.dart';
 import 'package:cinema_app_flutter/models/movie_detail.dart';
 import 'package:cinema_app_flutter/models/video.dart';
 import 'package:intl/intl.dart';
+import 'package:cinema_app_flutter/main.dart';
 
 class MovieDetailScreen extends ConsumerWidget {
   final int movieId;
@@ -14,10 +17,10 @@ class MovieDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final movieDetailAsync = ref.watch(movieDetailProvider(movieId));
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: movieDetailAsync.when(
-        data: (movie) => CustomScrollView(
+    return movieDetailAsync.when(
+      data: (movie) => Scaffold(
+        backgroundColor: Colors.black,
+        body: CustomScrollView(
           slivers: [
             _MovieTrailer(movieId: movieId),
             SliverToBoxAdapter(
@@ -45,23 +48,63 @@ class MovieDetailScreen extends ConsumerWidget {
             ),
           ],
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Lỗi: $err', style: const TextStyle(color: Colors.white))),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.confirmation_number),
-          label: const Text('Đặt vé'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.redAccent,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ElevatedButton.icon(
+            onPressed: () {
+              // 1. Đọc trạng thái đăng nhập hiện tại từ provider
+              // Dùng ref.read() vì chúng ta ở trong một callback, không cần lắng nghe sự thay đổi
+              final user = ref.read(authStateProvider).value;
+              // 2. Kiểm tra xem user có null hay không
+              if (user != null) {
+                // 3. Nếu đã đăng nhập: Chuyển đến màn hình Đặt vé
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                  //TRUYỀN DỮ LIỆU PHIM SANG
+                    builder: (context) => BookingScreen(
+                      movieId: movie.id, 
+                      movieTitle: movie.title
+                    ),
+                  ),
+                );
+              } else {
+                // 4. Nếu chưa đăng nhập: Hiển thị thông báo và chuyển đến màn hình Đăng nhập
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Vui lòng đăng nhập để tiếp tục!',
+                    textAlign: TextAlign.center,
+                    ),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SignInScreen(),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.confirmation_number),
+            label: const Text('Đặt vé'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
           ),
         ),
+      ),
+      loading: () => const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, stack) => Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: Text('Lỗi: $err', style: const TextStyle(color: Colors.white))),
       ),
     );
   }
@@ -92,7 +135,7 @@ class _MovieGenres extends ConsumerWidget {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }
@@ -176,7 +219,7 @@ class _MovieTrailer extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Icon(Icons.error)),
+        error: (_, _) => const Center(child: Icon(Icons.error)),
       ),
     );
   }
@@ -266,7 +309,7 @@ class _ProductionInfo extends ConsumerWidget {
         ],
       ),
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }
