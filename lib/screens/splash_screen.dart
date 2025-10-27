@@ -43,8 +43,8 @@ class _SplashScreenState extends State<SplashScreen>
           });
           
         } else if (status == ControllerStatus.completed) {
-          log('✅ Animation completed, navigating...');
-          _navigateToAuth(); // ✅ SỬA ĐỔI
+          log('Animation completed, navigating...');
+          _navigateToAuth(); 
         }
       };
 
@@ -52,8 +52,8 @@ class _SplashScreenState extends State<SplashScreen>
       
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted && !_isNavigating) {
-          log('⏰ Animation timeout, navigating...');
-          _navigateToAuth(); // ✅ SỬA ĐỔI
+          log('Animation timeout, navigating...');
+          _navigateToAuth(); 
         }
       });
       
@@ -61,26 +61,26 @@ class _SplashScreenState extends State<SplashScreen>
       log('Error initializing animation: $e');
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted && !_isNavigating) {
-          _navigateToAuth(); // ✅ SỬA ĐỔI
+          _navigateToAuth(); 
         }
       });
     }
   }
 
-  void _navigateToAuth() { // ✅ SỬA ĐỔI TÊN HÀM
+  void _navigateToAuth() { 
     if (_isNavigating || !mounted) return;
     
     _isNavigating = true;
-    log('🚀 Navigating to /auth'); // ✅ SỬA ĐỔI LOG
+    log('Navigating to /auth'); 
     
     try {
-      Navigator.pushReplacementNamed(context, '/auth'); // ✅ SỬA ĐỔI ROUTE
+      Navigator.pushReplacementNamed(context, '/auth'); 
     } catch (e) {
-      log('❌ Navigation error: $e. Using fallback.');
+      log('Navigation error: $e. Using fallback.');
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const AuthWrapper()), // ✅ SỬA ĐỔI FALLBACK
+          MaterialPageRoute(builder: (context) => const AuthWrapper()), 
         );
       }
     }
@@ -88,7 +88,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    // Luôn dispose controller để tránh memory leak
     _controller.removeStatusListener(_listener);
     //_controller.dispose();
     super.dispose();
@@ -96,7 +95,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    // ... Phần UI của bạn giữ nguyên, không cần thay đổi ...
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -121,7 +119,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Your movie world in your pocket",
+                    "Thế giới phim ảnh trong túi bạn",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
@@ -150,7 +148,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildAnimation() {
-    // ... phần này cũng giữ nguyên ...
     try {
       return IconViewer(
         controller: _controller,
@@ -158,7 +155,7 @@ class _SplashScreenState extends State<SplashScreen>
         height: 200,
       );
     } catch (e) {
-      log('❌ Animation widget error: $e');
+      log('Animation widget error: $e');
       return Container(
         width: 200,
         height: 200,

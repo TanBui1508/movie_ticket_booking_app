@@ -2,10 +2,27 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+    		<string>momo</string>
+		</array>
+		<key>CFBundleURLTypes</key>
+		<array>
+    		<dict>
+        		<key>CFBundleTypeRole</key>
+        		<string>Editor</string>
+        		<key>CFBundleURLName</key>
+        		<string>mycinemaapp</string>
+        		<key>CFBundleURLSchemes</key>
+        		<array>
+            		<string>mycinemaapp</string>
+        		</array>
+    		</dict>
+		</array>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Cinema App Flutter</string>
+		<string>Cinema 4TK</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -49,5 +66,22 @@
 		<false/>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
+
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Ứng dụng cần truy cập thư viện để bạn chọn ảnh đại diện.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Ứng dụng cần truy cập camera để bạn chụp ảnh đại diện.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Ứng dụng cần truy cập micro nếu bạn quay video (không bắt buộc nếu chỉ chọn ảnh).</string>
+
+		<key>LSApplicationQueriesSchemes</key>
+    	<array>
+      		<string>momo</string>
+    	</array>
+
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Ứng dụng cần quyền truy cập thư viện để lưu ảnh vé của bạn.</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>Ứng dụng cần quyền truy cập thư viện để lưu ảnh vé của bạn.</string>
 	</dict>
 </plist>

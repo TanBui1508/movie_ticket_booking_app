@@ -1,7 +1,7 @@
-// sign_up_screen.dart - Cập nhật với AuthService
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:cinema_app_flutter/utils/theme.dart';
 import 'package:cinema_app_flutter/widgets/custom_scaffold.dart';
@@ -46,7 +46,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         );
       },
     );
-    
+
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
@@ -63,7 +63,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
       try {
         final authService = ref.read(authProvider);
-        
+
         await authService.signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
@@ -74,7 +74,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
         // Chuyển sang HomeScreen bằng named route
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Đăng ký thành công!'),
@@ -82,7 +82,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             ),
           );
         }
-
       } on FirebaseAuthException catch (e) {
         String errorMsg;
         switch (e.code) {
@@ -118,6 +117,41 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng đồng ý xử lý dữ liệu cá nhân')),
       );
+    }
+  }
+
+  // ✅ THÊM HÀM XỬ LÝ ĐĂNG NHẬP GOOGLE
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true); // Bật loading
+    try {
+      final authService = ref.read(authProvider);
+      final userCredential = await authService.signInWithGoogle();
+
+      if (userCredential != null && mounted) {
+        // Đăng nhập thành công, AuthWrapper sẽ tự chuyển màn hình
+        // Nhưng nếu SignInScreen được push lên, chúng ta cần pop
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Đăng nhập với ${userCredential.user?.email} thành công!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+      // Nếu userCredential là null (người dùng hủy), không làm gì cả
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Lỗi đăng nhập Google: $e'),
+              backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false); // Tắt loading
+      }
     }
   }
 
@@ -167,15 +201,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Full Name'),
                           hintText: 'Enter Full Name',
-                          hintStyle: const TextStyle(color: Colors.black26),
-                          border: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          // hintStyle: const TextStyle(color: Colors.black26),
+                          // border: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
+                          // enabledBorder: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
                         ),
                       ),
                       const SizedBox(height: 15.0),
@@ -188,7 +222,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Vui lòng nhập email';
                           }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                              .hasMatch(value)) {
                             return 'Email không hợp lệ';
                           }
                           return null;
@@ -196,15 +231,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Email'),
                           hintText: 'Enter Email',
-                          hintStyle: const TextStyle(color: Colors.black26),
-                          border: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          // hintStyle: const TextStyle(color: Colors.black26),
+                          // border: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
+                          // enabledBorder: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
                         ),
                       ),
                       const SizedBox(height: 15.0),
@@ -225,15 +260,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Phone Number'),
                           hintText: 'Enter Phone Number',
-                          hintStyle: const TextStyle(color: Colors.black26),
-                          border: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          // hintStyle: const TextStyle(color: Colors.black26),
+                          // border: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
+                          // enabledBorder: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
                         ),
                       ),
                       const SizedBox(height: 15.0),
@@ -244,7 +279,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         readOnly: true,
                         onTap: () => _selectDate(context),
                         validator: (value) {
-                          if (_selectedDate == null || value == null || value.isEmpty) {
+                          if (_selectedDate == null ||
+                              value == null ||
+                              value.isEmpty) {
                             return 'Vui lòng chọn ngày sinh';
                           }
                           return null;
@@ -252,16 +289,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Date of Birth'),
                           hintText: 'Select Date of Birth',
-                          hintStyle: const TextStyle(color: Colors.black26),
-                          prefixIcon: const Icon(Icons.calendar_today, color: Colors.black45),
-                          border: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          //hintStyle: const TextStyle(color: Colors.black26),
+                          prefixIcon: const Icon(Icons.calendar_today,
+                              color: Colors.black45),
+                          // border: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
+                          // enabledBorder: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
                         ),
                       ),
                       const SizedBox(height: 15.0),
@@ -283,15 +321,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Password'),
                           hintText: 'Enter Password',
-                          hintStyle: const TextStyle(color: Colors.black26),
-                          border: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          // hintStyle: const TextStyle(color: Colors.black26),
+                          // border: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
+                          // enabledBorder: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
                         ),
                       ),
                       const SizedBox(height: 15.0),
@@ -344,7 +382,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                 )
                               : const Text(
                                   'Sign up',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
                                 ),
                         ),
                       ),
@@ -361,7 +401,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             ),
                           ),
                           const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                            padding: EdgeInsets.symmetric(
+                                vertical: 0, horizontal: 10),
                             child: Text(
                               'Sign up with',
                               style: TextStyle(color: Colors.black45),
@@ -379,10 +420,32 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          const Icon(BoxIcons.bxl_facebook_circle, size: 40.0, color: Colors.blue),
-                          const Icon(BoxIcons.bxl_twitter, size: 40.0, color: Colors.lightBlue),
-                          const Icon(BoxIcons.bxl_google, size: 40.0, color: Colors.redAccent),
-                          const Icon(BoxIcons.bxl_apple, size: 40.0, color: Colors.black),
+                          // Nút Google
+                          _buildSocialButton(
+                            icon: BoxIcons.bxl_google,
+                            color: Colors.redAccent,
+                            onTap: _isLoading
+                                ? () {}
+                                : _signInWithGoogle, // Gọi hàm mới
+                          ),
+                          // Nút Facebook (chưa làm)
+                          _buildSocialButton(
+                            icon: BoxIcons.bxl_facebook_circle,
+                            color: Colors.blue,
+                            onTap: () {/* TODO */},
+                          ),
+                          // Nút Twitter (chưa làm)
+                          _buildSocialButton(
+                            icon: BoxIcons.bxl_twitter,
+                            color: Colors.lightBlue,
+                            onTap: () {/* TODO */},
+                          ),
+                          // Nút Apple (chưa làm)
+                          _buildSocialButton(
+                            icon: BoxIcons.bxl_apple,
+                            color: Colors.black,
+                            onTap: () {/* TODO */},
+                          ),
                         ],
                       ),
                       const SizedBox(height: 25.0),
@@ -394,17 +457,18 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             style: TextStyle(color: Colors.black45),
                           ),
                           GestureDetector(
-  onTap: () {
-    Navigator.pushNamed(context, '/signin');  // ✅ Named route
-  },
-  child: Text(
-    'Sign in',
-    style: TextStyle(
-      fontWeight: FontWeight.bold,
-      color: lightColorScheme.primary,
-    ),
-  ),
-),
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, '/signin'); // ✅ Named route
+                            },
+                            child: Text(
+                              'Sign in',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: lightColorScheme.primary,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 20.0),
@@ -415,6 +479,23 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSocialButton(
+      {required IconData icon,
+      required Color color,
+      required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(12.sp), // Dùng ScreenUtil
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.grey.shade300, width: 1),
+        ),
+        child: Icon(icon, size: 30.sp, color: color), // Dùng ScreenUtil
       ),
     );
   }

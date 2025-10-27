@@ -2,6 +2,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+        gradlePluginPortal()
     }
 }
 
@@ -33,7 +35,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:7.3.0")
+        classpath("com.android.tools.build:gradle:7.4.2")
         // Use proper string interpolation to reference the variable
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlin_version}")
         classpath("com.google.gms:google-services:4.4.1")

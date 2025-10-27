@@ -6,6 +6,7 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:cinema_app_flutter/utils/theme.dart';
 import 'package:cinema_app_flutter/widgets/custom_scaffold.dart';
 import 'package:cinema_app_flutter/services/auth_service.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -33,9 +34,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           password: _passwordController.text.trim(),
         );
 
-        // Chuyển sang HomeScreen bằng named route
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Đăng nhập thành công!'),
@@ -43,7 +43,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             ),
           );
         }
-
       } on FirebaseAuthException catch (e) {
         String errorMsg;
         switch (e.code) {
@@ -74,6 +73,105 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         if (mounted) {
           setState(() => _isLoading = false);
         }
+      }
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true); 
+    try {
+      final authService = ref.read(authProvider);
+      final userCredential = await authService.signInWithGoogle();
+
+      if (userCredential != null && mounted) {
+        // Đăng nhập thành công, AuthWrapper sẽ tự chuyển màn hình
+        // Nhưng nếu SignInScreen được push lên, chúng ta cần pop
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Đăng nhập với ${userCredential.user?.email} thành công!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+      // Nếu userCredential là null (người dùng hủy), không làm gì cả
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Lỗi đăng nhập Google: $e'),
+              backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false); // Tắt loading
+      }
+    }
+  }
+
+  // ✅ HÀM MỚI: XỬ LÝ QUÊN MẬT KHẨU
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+
+    // Kiểm tra xem email đã được nhập chưa
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('Vui lòng nhập email của bạn vào ô bên trên để khôi phục.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return; // Dừng lại
+    }
+
+    // Validate email (đơn giản)
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email nhập vào không hợp lệ.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return; // Dừng lại
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final authService = ref.read(authProvider);
+      await authService.sendPasswordResetEmail(email: email);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Đã gửi link khôi phục mật khẩu. Vui lòng kiểm tra email!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMsg = 'Lỗi: ${e.message}';
+      if (e.code == 'user-not-found') {
+        errorMsg = 'Không tìm thấy tài khoản nào ứng với email này.';
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Đã xảy ra lỗi: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -118,7 +216,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Vui lòng nhập email';
                           }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                              .hasMatch(value)) {
                             return 'Email không hợp lệ';
                           }
                           return null;
@@ -126,15 +225,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         decoration: InputDecoration(
                           label: const Text('Email'),
                           hintText: 'Enter Email',
-                          hintStyle: const TextStyle(color: Colors.black26),
-                          border: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          // hintStyle: const TextStyle(color: Colors.black26),
+                          // border: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
+                          // enabledBorder: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
                         ),
                       ),
                       const SizedBox(height: 25.0),
@@ -153,15 +252,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         decoration: InputDecoration(
                           label: const Text('Password'),
                           hintText: 'Enter Password',
-                          hintStyle: const TextStyle(color: Colors.black26),
-                          border: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          // hintStyle: const TextStyle(color: Colors.black26),
+                          // border: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
+                          // enabledBorder: OutlineInputBorder(
+                          //   borderSide: const BorderSide(color: Colors.black12),
+                          //   borderRadius: BorderRadius.circular(10),
+                          // ),
                         ),
                       ),
                       const SizedBox(height: 25.0),
@@ -188,14 +287,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             ],
                           ),
                           GestureDetector(
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Chức năng khôi phục mật khẩu sẽ được thêm sau'),
-                                  backgroundColor: Colors.orange,
-                                ),
-                              );
-                            },
+                            // ✅ SỬA onTap
+                            onTap: _isLoading
+                                ? null
+                                : _forgotPassword, // Gọi hàm mới
                             child: Text(
                               'Forget password?',
                               style: TextStyle(
@@ -229,7 +324,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                 )
                               : const Text(
                                   'Sign In',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
                                 ),
                         ),
                       ),
@@ -247,7 +344,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             ),
                           ),
                           const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                            padding: EdgeInsets.symmetric(
+                                vertical: 0, horizontal: 10),
                             child: Text(
                               'Or sign in with',
                               style: TextStyle(color: Colors.black45),
@@ -262,13 +360,36 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         ],
                       ),
                       const SizedBox(height: 25.0),
+                      // ✅ SỬA LẠI CÁC NÚT SOCIAL
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          const Icon(BoxIcons.bxl_facebook_circle, size: 40.0, color: Colors.blue),
-                          const Icon(BoxIcons.bxl_twitter, size: 40.0, color: Colors.lightBlue),
-                          const Icon(BoxIcons.bxl_google, size: 40.0, color: Colors.redAccent),
-                          const Icon(BoxIcons.bxl_apple, size: 40.0, color: Colors.black),
+                          // Nút Google
+                          _buildSocialButton(
+                            icon: BoxIcons.bxl_google,
+                            color: Colors.redAccent,
+                            onTap: _isLoading
+                                ? () {}
+                                : _signInWithGoogle, // Gọi hàm mới
+                          ),
+                          // Nút Facebook (chưa làm)
+                          _buildSocialButton(
+                            icon: BoxIcons.bxl_facebook_circle,
+                            color: Colors.blue,
+                            onTap: () {/* TODO */},
+                          ),
+                          // Nút Twitter (chưa làm)
+                          _buildSocialButton(
+                            icon: BoxIcons.bxl_twitter,
+                            color: Colors.lightBlue,
+                            onTap: () {/* TODO */},
+                          ),
+                          // Nút Apple (chưa làm)
+                          _buildSocialButton(
+                            icon: BoxIcons.bxl_apple,
+                            color: Colors.black,
+                            onTap: () {/* TODO */},
+                          ),
                         ],
                       ),
                       const SizedBox(height: 25.0),
@@ -280,17 +401,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             style: TextStyle(color: Colors.black45),
                           ),
                           GestureDetector(
-  onTap: () {
-    Navigator.pushNamed(context, '/signup');  // ✅ Named route
-  },
-  child: Text(
-    'Sign up',
-    style: TextStyle(
-      fontWeight: FontWeight.bold,
-      color: lightColorScheme.primary,
-    ),
-  ),
-),
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, '/signup'); // ✅ Named route
+                            },
+                            child: Text(
+                              'Sign up',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: lightColorScheme.primary,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 20.0),
@@ -301,6 +423,24 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ✅ THÊM WIDGET HELPER CHO NÚT SOCIAL
+  Widget _buildSocialButton(
+      {required IconData icon,
+      required Color color,
+      required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(12.sp), // Dùng ScreenUtil
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.grey.shade300, width: 1),
+        ),
+        child: Icon(icon, size: 30.sp, color: color), // Dùng ScreenUtil
       ),
     );
   }
