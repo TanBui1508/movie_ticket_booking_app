@@ -39,14 +39,6 @@
 
 ## 🧭 Cấu trúc chính | Project Structure
 
-lib/
-├─ main.dart # Điểm khởi chạy chính
-├─ screens/ # Các màn hình UI
-├─ models/ # Các model dữ liệu (Movie, Ticket, Cinema...)
-├─ providers/ # Riverpod providers
-├─ services/ # Firebase + Business logic
-├─ utils/ # Cấu hình, theme, helper functions
-└─ widgets/ # Thành phần UI tái sử dụng
 
 ---
 
