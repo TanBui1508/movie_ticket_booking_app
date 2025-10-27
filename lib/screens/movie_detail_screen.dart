@@ -73,7 +73,7 @@ class MovieDetailScreen extends ConsumerWidget {
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Vui lòng đăng nhập để tiếp tục!')));
+                    content: Text('Hãy đăng nhập để tiếp tục!')));
                 Navigator.push(
                     context,
                     MaterialPageRoute(

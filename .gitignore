@@ -48,3 +48,6 @@ app.*.map.json
 /lib/firebase_options.dart
 /lib/google_service_info.dart
 /lib/services/movie_service.dart
+
+/android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
