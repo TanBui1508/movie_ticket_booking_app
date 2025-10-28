@@ -42,7 +42,7 @@ final currentUserDetailProvider = StreamProvider<AppUser?>((ref) {
     loading: () => Stream.value(null),
     // Khi có lỗi auth, trả về stream null
     error: (error, stackTrace) {
-        log('❌ Lỗi authStateProvider: $error');
+        log('Lỗi authStateProvider: $error');
         return Stream.value(null);
     }
   );

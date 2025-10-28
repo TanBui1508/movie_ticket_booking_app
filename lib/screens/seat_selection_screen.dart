@@ -16,35 +16,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 
-// ✅ Provider tự động lấy sơ đồ ghế theo Room và Showtime
-// final seatLayoutProvider = FutureProvider.family<List<List<Seat>>, Showtime>((ref, showtime) async {
-//   final room = await ref.watch(roomProvider(showtime.roomId).future);
-//   List<List<Seat>> layout = [];
-//   int rowCount = 0;
-
-//   for (int seatsInRow in room.seatMap) {
-//     String rowLabel = String.fromCharCode('A'.codeUnitAt(0) + rowCount);
-//     List<Seat> row = List.generate(seatsInRow, (seatIndex) {
-//       final seatId = '$rowLabel${seatIndex + 1}';
-//       return Seat(
-//         id: seatId,
-//         status: showtime.bookedSeats.contains(seatId)
-//             ? SeatStatus.sold
-//             : SeatStatus.available,
-//       );
-//     });
-//     layout.add(row);
-//     rowCount++;
-//   }
-//   return layout;
-// });
-
-// ✅ SỬA LẠI PROVIDER NÀY ĐỂ HIỆU QUẢ HƠN VÀ TỰ ĐỘNG CẬP NHẬT
 final seatLayoutProvider = FutureProvider.autoDispose.family<List<List<Seat>>, String>((ref, showtimeId) async {
-  
-  // 1. Lắng nghe (watch) stream của CHỈ MỘT suất chiếu
-  //    .future sẽ tự động xử lý loading/error.
-  //    Khi stream này cập nhật (ghế được bán), provider này sẽ tự động chạy lại
+  //    Khi stream cập nhật (ghế được bán), provider này sẽ tự động chạy lại
   final showtime = await ref.watch(showtimeStreamProvider(showtimeId).future);
 
   // 2. Chờ (await) cho đến khi roomProvider CÓ DỮ LIỆU.
@@ -147,7 +120,6 @@ class _SeatSelectionScreenState extends ConsumerState<SeatSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ SỬA Ở ĐÂY: Watch provider mới bằng ID
     final seatLayoutAsync = ref.watch(seatLayoutProvider(widget.showtime.id!));
     
     // Các provider khác giữ nguyên
@@ -155,11 +127,11 @@ class _SeatSelectionScreenState extends ConsumerState<SeatSelectionScreen> {
     final authState = ref.watch(authStateProvider);
     final movieAsync = ref.watch(movieDetailProvider(widget.showtime.movieId));
 
-    // ✅ BỌC SCAFFOLD BẰNG WILLPOPSCOPE ĐỂ XỬ LÝ NÚT BACK
+    //BỌC SCAFFOLD BẰNG WILLPOPSCOPE ĐỂ XỬ LÝ NÚT BACK
     return WillPopScope(
       onWillPop: () async {
         if (_selectedSeats.isNotEmpty) {
-          // Nếu có ghế đang chọn → hỏi người dùng
+          // Nếu có ghế đang chọn -> hỏi người dùng
           final shouldLeave = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
@@ -200,7 +172,7 @@ class _SeatSelectionScreenState extends ConsumerState<SeatSelectionScreen> {
             Expanded(
               child: seatLayoutAsync.when(
                 data: (layout) {
-                   // ✅ LOGIC: Reset lại _selectedSeats nếu layout thay đổi (ghế bị bán)
+                   // Reset lại _selectedSeats nếu layout thay đổi (ghế bị bán)
                    WidgetsBinding.instance.addPostFrameCallback((_) {
                       _syncSelectedSeatsWithLayout(layout);
                    });
@@ -223,7 +195,7 @@ class _SeatSelectionScreenState extends ConsumerState<SeatSelectionScreen> {
     );
   }
 
-  // ✅ HÀM MỚI: Đồng bộ _selectedSeats với layout mới
+  // Đồng bộ _selectedSeats với layout mới
   void _syncSelectedSeatsWithLayout(List<List<Seat>> layout) {
       final List<Seat> stillSelected = [];
       bool seatsChanged = false;
@@ -270,7 +242,7 @@ class _SeatSelectionScreenState extends ConsumerState<SeatSelectionScreen> {
       }
   }
   
-  // ✅ HÀM MỚI: Reset ghế đã chọn (khi bấm back)
+  // Reset ghế đã chọn (khi bấm back)
   void _resetSelectedSeats(List<List<Seat>>? layout) {
      if (layout != null) {
         // Đặt lại status của các ghế đang chọn (xanh lá) về available (trắng/vàng)
@@ -448,9 +420,7 @@ class _SeatSelectionScreenState extends ConsumerState<SeatSelectionScreen> {
     );
   }
 
-  // lib/screens/seat_selection_screen.dart -> _SeatSelectionScreenState
 
-// ✅ SỬA _buildFooter: Xóa ref.read thừa VÀ invalidate provider sau khi thanh toán
   Widget _buildFooter(BuildContext context, AsyncValue authState, AsyncValue movieAsync, AsyncValue<Room> roomAsync) {
     double total = 0;
     List<TicketSeat> detailedSelectedSeats = [];
@@ -518,7 +488,7 @@ class _SeatSelectionScreenState extends ConsumerState<SeatSelectionScreen> {
                       MaterialPageRoute(builder: (context) => const SignInScreen()),
                     );
 
-                    // ✅ 4. SAU KHI QUAY LẠI, KIỂM TRA LẠI
+                    // SAU KHI QUAY LẠI, KIỂM TRA LẠI
                     final updatedUser = ref.read(authStateProvider).value;
                     
                     // Nếu người dùng bấm "back" (vẫn null), thì dừng lại
@@ -557,11 +527,12 @@ class _SeatSelectionScreenState extends ConsumerState<SeatSelectionScreen> {
                       theaterName: cinema.name,
                       showDateTime: widget.showtime.startTime,
                       seats: detailedSelectedSeats,
+                      originalPrice: total,  
+                      discountAmount: 0.0, 
                       totalPrice: total,
                       bookingTime: DateTime.now(),
                     );
 
-                    // ✅ ĐIỀU HƯỚNG VÀ XỬ LÝ KẾT QUẢ
                     final paymentResult = await Navigator.push<bool>( 
                       context,
                       MaterialPageRoute(
@@ -569,19 +540,16 @@ class _SeatSelectionScreenState extends ConsumerState<SeatSelectionScreen> {
                       ),
                     );
 
-                    // ✅ XỬ LÝ KHI QUAY LẠI TỪ THANH TOÁN
+                    // XỬ LÝ KHI QUAY LẠI TỪ THANH TOÁN
                     if (paymentResult == true && mounted) {
                        // Thanh toán thành công!
                        // Backend đã cập nhật Firestore (qua IPN).
-                       // StreamProvider (showtimeStreamProvider) sẽ tự động
-                       // phát hiện thay đổi và kích hoạt seatLayoutProvider chạy lại.
-                       // Chúng ta chỉ cần xóa ghế xanh (đang chọn).
+                       // StreamProvider (showtimeStreamProvider) sẽ tự động phát hiện thay đổi và kích hoạt seatLayoutProvider chạy lại.
+                       // Xóa ghế xanh (đang chọn).
                        setState(() {
                          _selectedSeats.clear();
                        });
                     }
-                    // Nếu paymentResult != true (người dùng back/thất bại)
-                    // thì _selectedSeats vẫn giữ nguyên (ghế vẫn xanh)
                   }
                 : null, 
             style: ElevatedButton.styleFrom(

@@ -7,7 +7,6 @@ import 'user_provider.dart'; // Import firestoreProvider và currentUserDetailPr
 // Provider lấy TỔNG ĐIỂM của user hiện tại
 final userTotalPointsProvider = StreamProvider<int>((ref) {
   
-  // ✅ SỬA LỖI:
   // 1. Lắng nghe 'AsyncValue' (kết quả) của provider chi tiết user
   final userDetailAsyncValue = ref.watch(currentUserDetailProvider);
 

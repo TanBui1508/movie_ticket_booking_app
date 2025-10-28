@@ -11,25 +11,31 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cinema_app_flutter/providers/user_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 
 class UserProfileScreen extends ConsumerWidget {
   const UserProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);   //Dùng theme để hỗ trợ chế độ sáng/tối
+
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: theme.colorScheme.background,  
       appBar: AppBar(
-        title: const Text('Tài khoản của tôi',
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
+        title: Text(
+          'Tài khoản của tôi',
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,  
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: theme.colorScheme.surface,  
         elevation: 1,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        // ✅ THÊM Padding ở dưới cùng
-        padding: EdgeInsets.only(
-            bottom: 90.h), // Thêm khoảng đệm = chiều cao NavBar + chút dư
+        padding: EdgeInsets.only(bottom: 90.h),
         child: Column(
           children: [
             const _ProfileHeader(),
@@ -42,42 +48,41 @@ class UserProfileScreen extends ConsumerWidget {
   }
 }
 
+// -----------------------------------------------------------------------------
 // PHẦN 1: HEADER THÔNG TIN CÁ NHÂN
+// -----------------------------------------------------------------------------
 class _ProfileHeader extends ConsumerWidget {
   const _ProfileHeader();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userAsync = ref.watch(currentUserDetailProvider);
+    final theme = Theme.of(context);  
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 24.h, horizontal: 16.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,  
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(20.r)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5)),
+            color: theme.shadowColor.withOpacity(0.1),  
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
         ],
       ),
       child: userAsync.when(
         data: (appUser) {
-          // ✅ Nhận về AppUser?
           if (appUser == null) {
-            // Xử lý khi chưa đăng nhập hoặc không có data
             return Center(
               child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Điều hướng đến trang đăng nhập
-                  Navigator.pushNamed(context, '/signin');
-                },
+                onPressed: () => Navigator.pushNamed(context, '/signin'),
                 child: const Text('Đăng nhập / Đăng ký'),
               ),
             );
           }
-          // Hiển thị thông tin user
+
           return Row(
             children: [
               Expanded(
@@ -85,21 +90,21 @@ class _ProfileHeader extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 45.r,
-                      backgroundColor: Colors.grey.shade200,
-                      // ✅ Lấy avatarUrl từ AppUser, có fallback
-                      backgroundImage: (appUser.avatarUrl != null &&
-                              appUser.avatarUrl!.isNotEmpty)
+                      backgroundColor:
+                          theme.colorScheme.primaryContainer,  
+                      backgroundImage: (appUser.avatarUrl?.isNotEmpty ?? false)
                           ? NetworkImage(appUser.avatarUrl!)
-                          : null, // Hoặc AssetImage('assets/default_avatar.png')
+                          : null,
                       child: (appUser.avatarUrl == null ||
                               appUser.avatarUrl!.isEmpty)
                           ? Text(
-                              // Hiển thị chữ cái đầu nếu không có ảnh
                               appUser.fullName.isNotEmpty
                                   ? appUser.fullName[0].toUpperCase()
                                   : '?',
                               style: TextStyle(
-                                  fontSize: 40.sp, color: Colors.grey.shade600),
+                                fontSize: 40.sp,
+                                color: theme.colorScheme.onSurfaceVariant,  
+                              ),
                             )
                           : null,
                     ),
@@ -107,9 +112,10 @@ class _ProfileHeader extends ConsumerWidget {
                     Text(
                       appUser.fullName.isNotEmpty
                           ? appUser.fullName
-                          : 'Người dùng', // ✅ Lấy fullName
-                      style: TextStyle(
-                          fontSize: 18.sp, fontWeight: FontWeight.bold),
+                          : 'Người dùng',
+                      style: theme.textTheme.titleMedium!.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),  
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -120,11 +126,11 @@ class _ProfileHeader extends ConsumerWidget {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: theme.dividerColor),  
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: QrImageView(
-                        data: appUser.id, // ✅ Dùng ID thật của user
+                        data: appUser.id,
                         version: QrVersions.auto,
                         size: 90.r,
                         padding: EdgeInsets.all(8.r),
@@ -133,8 +139,7 @@ class _ProfileHeader extends ConsumerWidget {
                     SizedBox(height: 12.h),
                     Text(
                       'Tích điểm',
-                      style: TextStyle(
-                          fontSize: 14.sp, color: Colors.grey.shade600),
+                      style: theme.textTheme.bodySmall,  
                     ),
                   ],
                 ),
@@ -149,16 +154,20 @@ class _ProfileHeader extends ConsumerWidget {
   }
 }
 
+// -----------------------------------------------------------------------------
 // PHẦN 2: DANH SÁCH MENU CHỨC NĂNG
+// -----------------------------------------------------------------------------
 class _MenuList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserAsync = ref.watch(currentUserDetailProvider);
+    final theme = Theme.of(context);  
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
       padding: EdgeInsets.symmetric(vertical: 8.h),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,  
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Column(
@@ -167,11 +176,8 @@ class _MenuList extends ConsumerWidget {
               icon: Icons.person_outline,
               title: 'Cập nhật thông tin',
               onTap: () {
-                // Lấy giá trị data từ AsyncValue (có thể là null)
                 final currentUser = currentUserAsync.value;
-
                 if (currentUser != null) {
-                  // Nếu có data user, chuyển sang màn hình Edit
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -180,11 +186,10 @@ class _MenuList extends ConsumerWidget {
                     ),
                   );
                 } else {
-                  // Nếu chưa đăng nhập hoặc data chưa load xong, báo lỗi
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text(
-                            'Vui lòng đợi thông tin tải xong hoặc đăng nhập lại')),
+                        content:
+                            Text('Vui lòng đợi thông tin tải xong hoặc đăng nhập lại')),
                   );
                 }
               }),
@@ -192,7 +197,6 @@ class _MenuList extends ConsumerWidget {
               icon: Icons.history,
               title: 'Lịch sử thanh toán',
               onTap: () {
-                // Kiểm tra đăng nhập trước khi điều hướng
                 final user = ref.read(authStateProvider).value;
                 if (user != null) {
                   Navigator.push(
@@ -202,8 +206,7 @@ class _MenuList extends ConsumerWidget {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Vui lòng đăng nhập để xem lịch sử')),
+                    const SnackBar(content: Text('Vui lòng đăng nhập để xem lịch sử')),
                   );
                 }
               }),
@@ -211,7 +214,6 @@ class _MenuList extends ConsumerWidget {
               icon: Icons.star_border,
               title: 'Lịch sử tích điểm',
               onTap: () {
-                // Kiểm tra đăng nhập trước khi điều hướng
                 final user = ref.read(authStateProvider).value;
                 if (user != null) {
                   Navigator.push(
@@ -221,20 +223,14 @@ class _MenuList extends ConsumerWidget {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Vui lòng đăng nhập để xem lịch sử')),
+                    const SnackBar(content: Text('Vui lòng đăng nhập để xem lịch sử')),
                   );
                 }
-                
               }),
           _MenuItem(
               icon: Icons.notifications_none_outlined,
               title: 'Thông báo',
               onTap: () {
-                // Điều hướng đến NotificationScreen (trong MainScreen) bằng cách đổi index
-                // Cách này không lý tưởng nếu bạn muốn push màn hình mới
-                // Cách tốt hơn là tìm widget cha MainScreen và gọi _onItemTapped(0)
-                // Hoặc đơn giản là push màn hình NotificationScreen mới:
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -246,20 +242,16 @@ class _MenuList extends ConsumerWidget {
               icon: Icons.info_outline,
               title: 'Thông tin công ty',
               onTap: () async {
-                // Thêm async
-                // Gọi provider để lấy data
                 final infoAsync =
                     ref.read(appInfoProvider('company_info').future);
-                final info = await infoAsync; // Đợi lấy data
+                final info = await infoAsync;
                 if (info != null && context.mounted) {
-                  // Kiểm tra context.mounted
                   _showInfoDialog(context, info.title, info.content);
                 } else if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Không thể tải thông tin')));
                 }
               }),
-          // Làm tương tự cho 3 _MenuItem còn lại với các ID tương ứng
           _MenuItem(
               icon: Icons.description_outlined,
               title: 'Điều khoản sử dụng',
@@ -302,12 +294,11 @@ class _MenuList extends ConsumerWidget {
           const Divider(),
           _MenuItem(
               icon: Icons.phone_outlined,
-              title: 'Hotline: 0812829809', // Added the number here for display
+              title: 'Hotline: 0812829809',
               onTap: () async {
-                // ✅ 2. Make onTap async
                 final Uri launchUri = Uri(
                   scheme: 'tel',
-                  path: '0812829809', // The phone number
+                  path: '0812829809',
                 );
                 try {
                   if (await canLaunchUrl(launchUri)) {
@@ -315,44 +306,13 @@ class _MenuList extends ConsumerWidget {
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                          content:
-                              Text('Không thể mở ứng dụng gọi điện thoại.')),
+                          content: Text('Không thể mở ứng dụng gọi điện thoại.')),
                     );
-                    print('Could not launch $launchUri'); // Log for debugging
                   }
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text('Lỗi mở ứng dụng gọi điện thoại: $e')),
+                    SnackBar(content: Text('Lỗi mở ứng dụng gọi điện thoại: $e')),
                   );
-                  print('Error launching phone: $e'); // Log for debugging
-                }
-              }),
-          _MenuItem(
-              icon: Icons.email_outlined,
-              title:
-                  'Email: cine4tk@gmail.com', // Added the email here for display
-              onTap: () async {
-                // ✅ 3. Make onTap async
-                final Uri launchUri = Uri(
-                  scheme: 'mailto',
-                  path: 'cine4tk@gmail.com', // The email address
-                );
-                try {
-                  if (await canLaunchUrl(launchUri)) {
-                    await launchUrl(launchUri);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Không thể mở ứng dụng email.')),
-                    );
-                    print('Could not launch $launchUri'); // Log for debugging
-                  }
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Lỗi mở ứng dụng email: $e')),
-                  );
-                  print('Error launching email: $e'); // Log for debugging
                 }
               }),
           const Divider(),
@@ -361,33 +321,27 @@ class _MenuList extends ConsumerWidget {
             title: 'Đăng xuất',
             color: Colors.red,
             onTap: () async {
-              // Giữ async nếu dùng dialog
-              // Tùy chọn: Thêm dialog xác nhận nếu muốn
               final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                        /* ... dialog xác nhận ... */
-                        title: const Text('Xác nhận đăng xuất'),
-                        content: const Text(
-                            'Bạn có chắc chắn muốn đăng xuất không?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('Hủy'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text('Đăng xuất'),
-                          ),
-                        ],
-                      ));
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Xác nhận đăng xuất'),
+                  content: const Text('Bạn có chắc chắn muốn đăng xuất không?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Hủy'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Đăng xuất'),
+                    ),
+                  ],
+                ),
+              );
 
               if (confirm == true) {
-                // Chỉ đăng xuất nếu xác nhận
                 try {
                   await ref.read(authProvider).signOut();
-                  // ✅ KHÔNG cần Navigator ở đây nữa. AuthWrapper sẽ tự xử lý.
-                  // Có thể hiển thị SnackBar nếu muốn
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -396,7 +350,6 @@ class _MenuList extends ConsumerWidget {
                     );
                   }
                 } catch (e) {
-                  // Xử lý lỗi nếu signOut thất bại
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -414,7 +367,9 @@ class _MenuList extends ConsumerWidget {
   }
 }
 
+// -----------------------------------------------------------------------------
 // Widget con cho mỗi mục trong Menu
+// -----------------------------------------------------------------------------
 class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -430,27 +385,37 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);  
+
     return ListTile(
-      leading: Icon(icon, color: color ?? Colors.grey.shade700),
-      title: Text(title,
-          style: TextStyle(color: color ?? Colors.black87, fontSize: 16.sp)),
+      leading: Icon(icon, color: color ?? theme.iconTheme.color),  
+      title: Text(
+        title,
+        style: theme.textTheme.bodyLarge!.copyWith(
+          color: color ?? theme.colorScheme.onSurface,  
+          fontSize: 16.sp,
+        ),
+      ),
       trailing: Icon(Icons.arrow_forward_ios,
-          size: 14.sp, color: Colors.grey.shade400),
+          size: 14.sp, color: theme.hintColor),  
       onTap: onTap,
     );
   }
 }
 
+// -----------------------------------------------------------------------------
+// HỘP THOẠI HIỂN THỊ THÔNG TIN
+// -----------------------------------------------------------------------------
 void _showInfoDialog(BuildContext context, String title, String content) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
+      final theme = Theme.of(context);  
+
       return AlertDialog(
-        title: Text(title),
-        content: SingleChildScrollView(
-          // Cho phép cuộn nếu nội dung dài
-          child: Text(content),
-        ),
+        backgroundColor: theme.colorScheme.surface,  
+        title: Text(title, style: theme.textTheme.titleMedium),  
+        content: SingleChildScrollView(child: Text(content, style: theme.textTheme.bodyMedium)),  
         actions: <Widget>[
           TextButton(
             child: const Text('Đóng'),

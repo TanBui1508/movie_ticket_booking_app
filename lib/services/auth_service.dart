@@ -165,15 +165,18 @@ class AuthService {
               'createdAt': FieldValue.serverTimestamp(),
               'lastLogin': FieldValue.serverTimestamp(),
               'isActive': true,
-              'role': 'user', // ✅ Thêm
-              'dob': null, // ✅ Thêm
-              'dobString': '', // ✅ Thêm
+              'role': 'user', 
+              'dob': null, 
+              'dobString': '', 
             });
           } else {
+            final Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+          final String? currentAvatar = userData.containsKey('avatarUrl') ? userData['avatarUrl'] as String? : null;
             await userDocRef.update({
               'lastLogin': FieldValue.serverTimestamp(),
-              'avatarUrl': user.photoURL ??
-                  userDoc.data()?['avatarUrl'], // Cập nhật avatar
+              'avatarUrl': (currentAvatar == null || currentAvatar.isEmpty) 
+                         ? user.photoURL // Dùng ảnh Google nếu chưa có ảnh
+                         : currentAvatar, // Giữ ảnh cũ (ảnh hoạt hình) nếu đã có
             });
           }
         }
