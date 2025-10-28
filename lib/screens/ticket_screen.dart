@@ -1,4 +1,3 @@
-// lib/screens/ticket_screen.dart
 import 'dart:ui';
 import 'package:cinema_app_flutter/main.dart';
 import 'package:cinema_app_flutter/models/ticket_seat.dart';
@@ -414,8 +413,9 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
   // ✅ TÁCH PHẦN THANH TOÁN RA HÀM RIÊNG
   Widget _buildPaymentDetailsAndAction() {
     final ticketData = widget.ticket;
-    final finalPrice =
-        ticketData.totalPrice - _discountAmount; // Tính giá cuối cùng
+    final originalPrice = ticketData.totalPrice; 
+    // ✅ GIÁ CUỐI CÙNG (sau khi client tính)
+    final finalPrice = originalPrice - _discountAmount;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -588,8 +588,9 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
                         totalPrice: finalPrice, // ✅ Dùng giá sau khi áp voucher
                         bookingTime: DateTime.now(),
                         paymentStatus: 'pending', // Trạng thái ban đầu
-                        paymentMethod:
-                            _selectedPaymentMethod, // Lưu phương thức đã chọn
+                        paymentMethod: _selectedPaymentMethod, // Lưu phương thức đã chọn
+                        appliedVoucherId: _appliedVoucher?.id, // ID của doc trong user_vouchers
+                        appliedVoucherCode: _appliedVoucher?.code,
                         // id: null // ID sẽ được Firestore tạo
                       );
 
@@ -625,6 +626,8 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
                         bookingTime: ticketToSave.bookingTime,
                         paymentStatus: ticketToSave.paymentStatus,
                         paymentMethod: ticketToSave.paymentMethod,
+                        appliedVoucherId: ticketToSave.appliedVoucherId, // ✅ Truyền qua
+                        appliedVoucherCode: ticketToSave.appliedVoucherCode,
                       );
 
                       // 5. ĐIỀU HƯỚNG SANG PAYMENTSCREEN VỚI VÉ ĐÃ CÓ ID

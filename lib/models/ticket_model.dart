@@ -17,6 +17,9 @@ class Ticket {
   final String? paymentMethod;
   final String roomId;     
   final String roomName;   
+  final DateTime? paidAt;
+  final String? appliedVoucherId;   
+  final String? appliedVoucherCode;
 
   Ticket({
     this.id,
@@ -32,6 +35,10 @@ class Ticket {
     this.paymentMethod,
     required this.roomId,   
     required this.roomName, 
+    this.paidAt,
+
+    this.appliedVoucherId,
+    this.appliedVoucherCode,
   });
 
   factory Ticket.fromFirestore(DocumentSnapshot doc) {
@@ -55,6 +62,9 @@ class Ticket {
       paymentMethod: data['paymentMethod'],
       roomId: data['roomId'] ?? '',
       roomName: data['roomName'] ?? '',
+      paidAt: (data['paidAt'] as Timestamp?)?.toDate(),
+      appliedVoucherId: data['appliedVoucherId'], 
+      appliedVoucherCode: data['appliedVoucherCode'],
     );
   }
 
@@ -72,6 +82,9 @@ class Ticket {
       'paymentMethod': paymentMethod,
       'roomId': roomId,
       'roomName': roomName,
+      'paidAt': paidAt != null ? Timestamp.fromDate(paidAt!) : null,
+      'appliedVoucherId': appliedVoucherId,   // ✅ LƯU VÀO FIRESTORE
+      'appliedVoucherCode': appliedVoucherCode,
     };
   }
 }

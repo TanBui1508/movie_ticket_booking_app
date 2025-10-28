@@ -328,33 +328,33 @@ class _MenuList extends ConsumerWidget {
                   print('Error launching phone: $e'); // Log for debugging
                 }
               }),
-          _MenuItem(
-              icon: Icons.email_outlined,
-              title:
-                  'Email: cine4tk@gmail.com', // Added the email here for display
-              onTap: () async {
-                // ✅ 3. Make onTap async
-                final Uri launchUri = Uri(
-                  scheme: 'mailto',
-                  path: 'cine4tk@gmail.com', // The email address
-                );
-                try {
-                  if (await canLaunchUrl(launchUri)) {
-                    await launchUrl(launchUri);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Không thể mở ứng dụng email.')),
-                    );
-                    print('Could not launch $launchUri'); // Log for debugging
-                  }
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Lỗi mở ứng dụng email: $e')),
-                  );
-                  print('Error launching email: $e'); // Log for debugging
-                }
-              }),
+          // _MenuItem(
+          //     icon: Icons.email_outlined,
+          //     title:
+          //         'Email: cine4tk@gmail.com', // Added the email here for display
+          //     onTap: () async {
+          //       // ✅ 3. Make onTap async
+          //       final Uri launchUri = Uri(
+          //         scheme: 'mailto',
+          //         path: 'cine4tk@gmail.com', // The email address
+          //       );
+          //       try {
+          //         if (await canLaunchUrl(launchUri)) {
+          //           await launchUrl(launchUri);
+          //         } else {
+          //           ScaffoldMessenger.of(context).showSnackBar(
+          //             const SnackBar(
+          //                 content: Text('Không thể mở ứng dụng email.')),
+          //           );
+          //           print('Could not launch $launchUri'); // Log for debugging
+          //         }
+          //       } catch (e) {
+          //         ScaffoldMessenger.of(context).showSnackBar(
+          //           SnackBar(content: Text('Lỗi mở ứng dụng email: $e')),
+          //         );
+          //         print('Error launching email: $e'); // Log for debugging
+          //       }
+          //     }),
           const Divider(),
           _MenuItem(
             icon: Icons.logout,

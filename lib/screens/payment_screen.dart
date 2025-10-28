@@ -172,8 +172,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     Uri.parse('$_backendUrl/api/payment/create-momo-payment'),
     headers: {'Content-Type': 'application/json'},
     body: json.encode({
-      'amount': widget.ticket.totalPrice.toInt(),
+      //'amount': widget.ticket.totalPrice.toInt(),
       'ticket_id': widget.ticket.id.toString(),
+      'voucher_id': widget.ticket.appliedVoucherId,
       'movie_title': widget.ticket.movie.title,
     }),
   );

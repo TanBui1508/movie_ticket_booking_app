@@ -372,24 +372,24 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                 ? () {}
                                 : _signInWithGoogle, // Gọi hàm mới
                           ),
-                          // Nút Facebook (chưa làm)
-                          _buildSocialButton(
-                            icon: BoxIcons.bxl_facebook_circle,
-                            color: Colors.blue,
-                            onTap: () {/* TODO */},
-                          ),
-                          // Nút Twitter (chưa làm)
-                          _buildSocialButton(
-                            icon: BoxIcons.bxl_twitter,
-                            color: Colors.lightBlue,
-                            onTap: () {/* TODO */},
-                          ),
-                          // Nút Apple (chưa làm)
-                          _buildSocialButton(
-                            icon: BoxIcons.bxl_apple,
-                            color: Colors.black,
-                            onTap: () {/* TODO */},
-                          ),
+                          // // Nút Facebook (chưa làm)
+                          // _buildSocialButton(
+                          //   icon: BoxIcons.bxl_facebook_circle,
+                          //   color: Colors.blue,
+                          //   onTap: () {/* TODO */},
+                          // ),
+                          // // Nút Twitter (chưa làm)
+                          // _buildSocialButton(
+                          //   icon: BoxIcons.bxl_twitter,
+                          //   color: Colors.lightBlue,
+                          //   onTap: () {/* TODO */},
+                          // ),
+                          // // Nút Apple (chưa làm)
+                          // _buildSocialButton(
+                          //   icon: BoxIcons.bxl_apple,
+                          //   color: Colors.black,
+                          //   onTap: () {/* TODO */},
+                          // ),
                         ],
                       ),
                       const SizedBox(height: 25.0),

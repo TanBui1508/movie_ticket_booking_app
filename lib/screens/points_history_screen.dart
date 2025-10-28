@@ -1,4 +1,3 @@
-// lib/screens/points_history_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,18 +11,22 @@ class PointsHistoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final historyAsync = ref.watch(pointsHistoryProvider);
+    final theme = Theme.of(context); // ✅ Lấy theme
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      // ✅ SỬA: Dùng màu nền của theme
+      backgroundColor: theme.scaffoldBackgroundColor, 
       appBar: AppBar(
         title: const Text('Lịch sử tích điểm'),
-        backgroundColor: Colors.white,
+        // ✅ SỬA: Dùng màu của theme
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.onSurface,
         elevation: 1,
       ),
       body: Column(
         children: [
           // Phần 1: Thẻ tổng điểm
-          _PointSummaryCard(),
+          _PointSummaryCard(), // (Widget này đã dùng theme.primaryColor, không cần sửa)
 
           // Phần 2: Tiêu đề danh sách
           Padding(
@@ -36,11 +39,19 @@ class PointsHistoryScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    // ✅ SỬA: Dùng màu chữ của theme
+                    color: theme.colorScheme.onSurface, 
                   ),
                 ),
                 TextButton(
-                  onPressed: () { /* TODO: Mở trang đổi quà */ },
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Chức năng sẽ được cập nhật sau!'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
                   child: const Text('Đổi quà'),
                 )
               ],
@@ -73,6 +84,7 @@ class PointsHistoryScreen extends ConsumerWidget {
   }
 }
 
+// --- WIDGET THẺ TỔNG ĐIỂM ---
 // --- WIDGET THẺ TỔNG ĐIỂM ---
 class _PointSummaryCard extends ConsumerWidget {
   @override
@@ -148,10 +160,12 @@ class _TransactionTile extends StatelessWidget {
     final Color color = isPositive ? Colors.green.shade600 : Colors.red.shade600;
     final IconData icon = isPositive ? Icons.add_circle : Icons.remove_circle;
     final String prefix = isPositive ? '+' : '';
+    final theme = Theme.of(context); // ✅ Lấy theme
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        // ✅ SỬA: Dùng màu nền Card của theme
+        color: theme.cardColor, 
         borderRadius: BorderRadius.circular(10.r),
       ),
       child: ListTile(
@@ -161,12 +175,18 @@ class _TransactionTile extends StatelessWidget {
         ),
         title: Text(
           transaction.title,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          // ✅ SỬA: Dùng màu chữ của theme
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: theme.colorScheme.onSurface, // Màu chữ chính
+          ), 
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
           DateFormat('dd/MM/yyyy HH:mm').format(transaction.timestamp.toDate()),
+          // ✅ SỬA: Dùng màu chữ phụ của theme
+          style: TextStyle(color: theme.colorScheme.onSurfaceVariant), 
         ),
         trailing: Text(
           '$prefix${NumberFormat.decimalPattern('vi').format(transaction.points)}',
