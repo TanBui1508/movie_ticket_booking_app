@@ -11,6 +11,8 @@ class Ticket {
   final String theaterName;
   final DateTime showDateTime;
   final List<TicketSeat> seats;
+  final double originalPrice;
+  final double discountAmount;
   final double totalPrice;
   final DateTime bookingTime;
   final String paymentStatus;
@@ -29,6 +31,8 @@ class Ticket {
     required this.theaterName,
     required this.showDateTime,
     required this.seats,
+    required this.originalPrice,
+    required this.discountAmount,
     required this.totalPrice,
     required this.bookingTime,
     this.paymentStatus = 'pending',
@@ -56,6 +60,8 @@ class Ticket {
       seats: (data['seats'] as List<dynamic>? ?? [])
           .map((seatJson) => TicketSeat.fromJson(seatJson))
           .toList(),
+      originalPrice: (data['originalPrice'] as num?)?.toDouble() ?? 0.0, 
+      discountAmount: (data['discountAmount'] as num?)?.toDouble() ?? 0.0,
       totalPrice: (data['totalPrice'] as num?)?.toDouble() ?? 0.0,
       bookingTime: (data['bookingTime'] as Timestamp).toDate(),
       paymentStatus: data['paymentStatus'] ?? 'failed',
@@ -76,6 +82,8 @@ class Ticket {
       'theaterName': theaterName,
       'showDateTime': Timestamp.fromDate(showDateTime),
       'seats': seats.map((seat) => seat.toJson()).toList(),
+      'originalPrice': originalPrice, 
+      'discountAmount': discountAmount,
       'totalPrice': totalPrice,
       'bookingTime': Timestamp.fromDate(bookingTime),
       'paymentStatus': paymentStatus,
@@ -83,7 +91,7 @@ class Ticket {
       'roomId': roomId,
       'roomName': roomName,
       'paidAt': paidAt != null ? Timestamp.fromDate(paidAt!) : null,
-      'appliedVoucherId': appliedVoucherId,   // ✅ LƯU VÀO FIRESTORE
+      'appliedVoucherId': appliedVoucherId,   
       'appliedVoucherCode': appliedVoucherCode,
     };
   }

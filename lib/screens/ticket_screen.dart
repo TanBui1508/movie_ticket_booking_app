@@ -8,9 +8,9 @@ import 'package:cinema_app_flutter/services/movie_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../models/movie_model.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../models/ticket_model.dart';
+import 'package:collection/collection.dart';
 
 class TicketScreen extends ConsumerStatefulWidget {
   final Ticket ticket;
@@ -23,10 +23,9 @@ class TicketScreen extends ConsumerStatefulWidget {
 class _TicketScreenState extends ConsumerState<TicketScreen> {
   bool _showAllSeats = false;
   String? _selectedPaymentMethod;
-  final _voucherCodeController =
-      TextEditingController(); // Controller cho ô nhập mã
-  Voucher? _appliedVoucher; // Lưu voucher đã áp dụng
-  double _discountAmount = 0.0; // Số tiền được giảm
+  final _voucherCodeController = TextEditingController(); 
+  Voucher? _appliedVoucher; 
+  double _discountAmount = 0.0; 
 
   bool _isApplyingVoucher = false; // Biến trạng thái loading
 
@@ -36,7 +35,6 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
     super.dispose();
   }
 
-  // --- Hàm kiểm tra và áp dụng voucher ---
   Future<void> _applyVoucher() async {
     // 1. Ngăn spam click
     if (_isApplyingVoucher) return;
@@ -44,23 +42,15 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
     final code = _voucherCodeController.text.trim().toUpperCase();
     if (code.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Vui lòng nhập mã voucher'),
-            backgroundColor: Colors.orange),
+        const SnackBar(content: Text('Vui lòng nhập mã voucher'), backgroundColor: Colors.orange),
       );
       return;
     }
 
     final userId = ref.read(authStateProvider).value?.uid;
-    if (userId == null) return; // Cần user ID
+    if (userId == null) return; 
 
-    // 2. Kích hoạt trạng thái loading (sẽ vô hiệu hóa nút)
-    setState(() {
-      _isApplyingVoucher = true;
-    });
-
-    // TODO: Gọi hàm kiểm tra voucher từ service (cần tạo hàm này)
-    // Ví dụ: final voucher = await ref.read(voucherServiceProvider).validateAndGetUserVoucher(code, userId);
+    setState(() { _isApplyingVoucher = true; });
 
     String? successMsg;
     String? errorMsg;
@@ -71,22 +61,26 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
 
       Voucher? foundVoucher;
       final userVouchers = ref.read(userVouchersProvider).value ?? [];
-      // foundVoucher = userVouchers.firstWhere(
-      //   (v) => v.code.toUpperCase() == code && v.currentActualStatus == VoucherStatus.available,
-      //   orElse: () => null,
-      // );
+      
+      // ✅✅ SỬA LỖI Ở ĐÂY: Bỏ comment và dùng 'firstWhereOrNull'
+      foundVoucher = userVouchers.firstWhereOrNull( 
+        (v) => v.code.toUpperCase() == code && v.currentActualStatus == VoucherStatus.available,
+      );
 
       if (foundVoucher != null) {
-        // ... (Logic tính toán giảm giá) ...
+        // ✅ KHỐI NÀY SẼ CHẠY KHI TÌM THẤY
+        // Tính toán giảm giá
         double discount = 0;
         if (foundVoucher.type == VoucherType.percent) {
           discount = widget.ticket.totalPrice * (foundVoucher.value / 100);
-        } else {
+          // (Tùy chọn) Giới hạn giảm giá tối đa
+          // if (discount > foundVoucher.maxDiscount) discount = foundVoucher.maxDiscount;
+        } else { // fixedAmount
           discount = foundVoucher.value;
         }
-        discount = discount > widget.ticket.totalPrice
-            ? widget.ticket.totalPrice
-            : discount;
+        
+        // Đảm bảo không giảm giá nhiều hơn tổng tiền
+        discount = discount > widget.ticket.totalPrice ? widget.ticket.totalPrice : discount;
 
         setState(() {
           _appliedVoucher = foundVoucher;
@@ -94,8 +88,9 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
         });
         successMsg = 'Áp dụng voucher "${foundVoucher.title}" thành công!';
       } else {
+        // ✅ KHỐI NÀY SẼ CHẠY KHI KHÔNG TÌM THẤY
         errorMsg = 'Mã voucher không hợp lệ, đã hết hạn hoặc đã sử dụng.';
-        setState(() {
+        setState(() { 
           _appliedVoucher = null;
           _discountAmount = 0.0;
         });
@@ -103,15 +98,10 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
     } catch (e) {
       errorMsg = "Đã xảy ra lỗi: $e";
     } finally {
-      // 3. LUÔN LUÔN TẮT LOADING (kích hoạt lại nút)
       if (mounted) {
-        // ❌ XÓA BỎ Navigator.of(context).pop();
-        setState(() {
-          _isApplyingVoucher = false;
-        });
+        setState(() { _isApplyingVoucher = false; });
       }
 
-      // 4. HIỂN THỊ KẾT QUẢ BẰNG SNACKBAR
       if (mounted && successMsg != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(successMsg), backgroundColor: Colors.green),
@@ -410,12 +400,10 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
   //   );
   // }
 
-  // ✅ TÁCH PHẦN THANH TOÁN RA HÀM RIÊNG
   Widget _buildPaymentDetailsAndAction() {
     final ticketData = widget.ticket;
-    final originalPrice = ticketData.totalPrice; 
-    // ✅ GIÁ CUỐI CÙNG (sau khi client tính)
-    final finalPrice = originalPrice - _discountAmount;
+    final double originalPrice = ticketData.totalPrice; 
+    final double finalPrice = originalPrice - _discountAmount;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -585,11 +573,15 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
                         theaterName: ticketData.theaterName,
                         showDateTime: ticketData.showDateTime,
                         seats: ticketData.seats,
-                        totalPrice: finalPrice, // ✅ Dùng giá sau khi áp voucher
+                        originalPrice: originalPrice,   
+                        discountAmount: _discountAmount, 
+                        totalPrice: finalPrice,
                         bookingTime: DateTime.now(),
                         paymentStatus: 'pending', // Trạng thái ban đầu
-                        paymentMethod: _selectedPaymentMethod, // Lưu phương thức đã chọn
-                        appliedVoucherId: _appliedVoucher?.id, // ID của doc trong user_vouchers
+                        paymentMethod:
+                            _selectedPaymentMethod, // Lưu phương thức đã chọn
+                        appliedVoucherId: _appliedVoucher
+                            ?.id, // ID của doc trong user_vouchers
                         appliedVoucherCode: _appliedVoucher?.code,
                         // id: null // ID sẽ được Firestore tạo
                       );
@@ -622,11 +614,13 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
                         theaterName: ticketToSave.theaterName,
                         showDateTime: ticketToSave.showDateTime,
                         seats: ticketToSave.seats,
+                        originalPrice: ticketToSave.originalPrice,
+                        discountAmount: ticketToSave.discountAmount,
                         totalPrice: ticketToSave.totalPrice,
                         bookingTime: ticketToSave.bookingTime,
                         paymentStatus: ticketToSave.paymentStatus,
                         paymentMethod: ticketToSave.paymentMethod,
-                        appliedVoucherId: ticketToSave.appliedVoucherId, // ✅ Truyền qua
+                        appliedVoucherId: ticketToSave.appliedVoucherId, 
                         appliedVoucherCode: ticketToSave.appliedVoucherCode,
                       );
 

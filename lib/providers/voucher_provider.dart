@@ -123,14 +123,12 @@ class VoucherService {
     }
   }
 
-// ✅ Cần copy/adapt hàm này từ Admin FirestoreService qua đây
 //    hoặc gọi Cloud Function để thực hiện logic này an toàn hơn
   Future<void> _createUserVoucherFromTemplate(
       String userId, VoucherTemplate template,
       {WriteBatch? batch}) async {
     // Lưu ý: Cần import Voucher, VoucherStatus từ voucher_model.dart
 
-    // ✅ SỬA LỖI KIỂM TRA NULL
     // Chỉ kiểm tra giới hạn nếu usageLimitPerUser được đặt (khác null) VÀ lớn hơn 0
     if (template.usageLimitPerUser != null && template.usageLimitPerUser! > 0) {
       final existingCountSnapshot = await _db
